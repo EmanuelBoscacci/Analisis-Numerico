@@ -55,7 +55,10 @@
         <p><strong>Raíz:</strong> @result.Root</p>
     </div>
 
-    <h4>Iteraciones</h4>
+    <h4>Gráfico (GeoGebra)</h4>
+    <div id="ggb-element" style="width:100%;max-width:820px;height:480px;" class="my-3 border rounded"></div>
+
+    <h4 class="mt-4">Iteraciones</h4>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -104,4 +107,57 @@
             }
         })();
     </script>
+
+    @if (result != null)
+    {
+        <script src="https://www.geogebra.org/apps/deployggb.js"></script>
+        <script>
+            (function () {
+                var funcStr = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Function ?? ""));
+                var rootVal = @result.Root.ToString("G", System.Globalization.CultureInfo.InvariantCulture);
+                var iterations = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(result.Iterations));
+
+                var ggbParams = {
+                    "appName": "graphing",
+                    "width": 820,
+                    "height": 480,
+                    "showToolBar": false,
+                    "showMenuBar": false,
+                    "showAlgebraInput": false,
+                    "showResetIcon": true,
+                    "enableShiftDragZoom": true,
+                    "enableRightClick": false,
+                    "appletOnLoad": function (api) {
+                        // Plot the function (funcStr is JSON-serialized, so special chars are escaped)
+                        api.evalCommand("f(x) = " + funcStr);
+
+                        // Mark iteration Xr points on the curve (blue)
+                        iterations.forEach(function (it, i) {
+                            var label = "It" + (i + 1);
+                            api.evalCommand(label + " = (" + it.Xr + ", f(" + it.Xr + "))");
+                            api.setPointStyle(label, 0);
+                            api.setPointSize(label, 5);
+                            api.setColor(label, 13, 110, 253);
+                            api.setLabelVisible(label, false);
+                        });
+
+                        // Mark the found root on the x-axis (red, larger)
+                        if (isFinite(rootVal)) {
+                            api.evalCommand("Raiz = (" + rootVal + ", 0)");
+                            api.setPointStyle("Raiz", 0);
+                            api.setPointSize("Raiz", 8);
+                            api.setColor("Raiz", 220, 53, 69);
+                            api.setLabelVisible("Raiz", true);
+                            api.setLabelStyle("Raiz", 3);
+                        }
+                    }
+                };
+
+                var ggbApp = new GGBApplet(ggbParams, true);
+                window.addEventListener("load", function () {
+                    ggbApp.inject("ggb-element");
+                });
+            })();
+        </script>
+    }
 }
