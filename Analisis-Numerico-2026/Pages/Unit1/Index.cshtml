@@ -1,0 +1,246 @@
+@page
+@model Analisis_Numerico_2026.Pages.Unit1.IndexModel
+
+@{
+    // Determinar el método activo (por defecto Bisección)
+    var metodo = string.IsNullOrEmpty(Model.Input.Method) ? "Biseccion" : Model.Input.Method;
+    var esCerrado = metodo == "Biseccion" || metodo == "ReglaFalsa";
+}
+
+<!-- BOTÓN VOLVER AL MENÚ -->
+<a href="/" class="btn-back">&larr; Volver al menú</a>
+
+<!-- HEADER -->
+<div class="header">
+    <span class="header-badge">Unidad 1</span>
+    <span class="header-title">Raíces de funciones</span>
+</div>
+
+<!-- TABS: Métodos cerrados / abiertos -->
+<div class="method-tabs">
+    <button type="button" class="method-tab @(esCerrado ? "active" : "")" onclick="selectCategory('cerrados')">Métodos cerrados</button>
+    <button type="button" class="method-tab @(!esCerrado ? "active" : "")" onclick="selectCategory('abiertos')">Métodos abiertos</button>
+</div>
+
+<!-- SUB-TABS -->
+<div class="sub-tabs" id="subTabs">
+    @if (esCerrado)
+    {
+        <button type="button" class="sub-tab @(metodo == "Biseccion" ? "active" : "")" data-method="Biseccion" onclick="selectMethod(this)">Bisección</button>
+        <button type="button" class="sub-tab @(metodo == "ReglaFalsa" ? "active" : "")" data-method="ReglaFalsa" onclick="selectMethod(this)">Regla Falsa</button>
+    }
+    else
+    {
+        <button type="button" class="sub-tab @(metodo == "NewtonRaphson" ? "active" : "")" data-method="NewtonRaphson" onclick="selectMethod(this)">Newton-Raphson</button>
+        <button type="button" class="sub-tab @(metodo == "Secante" ? "active" : "")" data-method="Secante" onclick="selectMethod(this)">Secante</button>
+    }
+</div>
+
+<!-- LAYOUT PRINCIPAL -->
+<form method="post" id="mainForm">
+    <input type="hidden" asp-for="Input.Method" id="methodInput" value="@metodo" />
+
+    <div class="u1-layout">
+
+        <!-- PANEL IZQUIERDO: Formulario -->
+        <div class="form-panel">
+            <div class="form-group">
+                <label>Función</label>
+                <input asp-for="Input.Function" id="functionInput" placeholder="Ej: x^2-2" required />
+                <span class="helper-text">Función a evaluar</span>
+            </div>
+
+            <div class="form-group">
+                <label>Xi</label>
+                <input asp-for="Input.Xi" type="text" inputmode="decimal" class="decimal-input" required />
+                <span class="helper-text">Límite inferior</span>
+            </div>
+
+            <div class="form-group" id="xdGroup" style="@(metodo == "NewtonRaphson" ? "display:none" : "")">
+                <label>Xd</label>
+                <input asp-for="Input.Xd" type="text" inputmode="decimal" class="decimal-input" />
+                <span class="helper-text">Límite superior</span>
+            </div>
+
+            <div class="form-group">
+                <label>Iteraciones</label>
+                <input asp-for="Input.MaxIterations" type="number" value="100" required />
+                <span class="helper-text">Número de iteraciones</span>
+            </div>
+
+            <div class="form-group">
+                <label>Tolerancia</label>
+                <input asp-for="Input.Tolerance" type="text" inputmode="decimal" class="decimal-input" value="0.0001" required />
+                <span class="helper-text">Tolerancia</span>
+            </div>
+
+            <button type="submit" class="btn-submit">Calcular</button>
+        </div>
+
+        <!-- PANEL CENTRAL: Resultados -->
+        @if (Model.Result != null)
+        {
+            <div class="result-panel">
+                <div class="result-header">
+                    <h3>@Model.Result.Method</h3>
+                    <span class="function-display">@Model.Result.Function</span>
+                </div>
+                <div class="result-body">
+                    <!-- Mensaje de resultado -->
+                    <div class="result-message @(Model.Result.Success ? "success" : "error")">
+                        @Model.Result.Message
+                    </div>
+
+                    <div class="result-item">
+                        <label>Iteraciones</label>
+                        <div class="value">@Model.Result.IterationsUsed / @Model.Input.MaxIterations</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Error relativo</label>
+                        <div class="value">@Model.Result.FinalError.Formato()</div>
+                    </div>
+                    <div class="result-item">
+                        <label>Raíz</label>
+                        <div class="value">@Model.Result.Root.Formato()</div>
+                    </div>
+                    <div class="result-footer">
+                        <span>Intervalo: [@Model.Input.Xi ; @Model.Input.Xd]</span>
+                        <span>Tolerancia: @Model.Input.Tolerance</span>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="result-panel" style="display:flex;align-items:center;justify-content:center;min-height:300px;">
+                <p style="color:#999;">Ingresá los datos y presioná Calcular</p>
+            </div>
+        }
+
+        <!-- PANEL DERECHO: GeoGebra -->
+        <div class="geogebra-panel">
+            <div id="ggb-element" style="width:100%;height:400px;"></div>
+        </div>
+
+    </div>
+</form>
+
+<!-- TABLA DE ITERACIONES -->
+@if (Model.Result != null && Model.Result.Iterations.Any())
+{
+    <div class="iterations-section">
+        <h4>Tabla de iteraciones</h4>
+        <table class="iterations-table">
+            <thead>
+                <tr>
+                    <th>Iteración</th>
+                    <th>Xi</th>
+                    <th>Xd</th>
+                    <th>Xr</th>
+                    <th>f(Xr)</th>
+                    <th>Error relativo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var it in Model.Result.Iterations)
+                {
+                    <tr class="@(it.IsRoot ? "root-row" : "")">
+                        <td>@it.Iteration</td>
+                        <td>@it.Xi.Formato()</td>
+                        <td>@it.Xd.Formato()</td>
+                        <td>@it.Xr.Formato()</td>
+                        <td>@it.FunctionValue.Formato()</td>
+                        <td>@it.RelativeError.Formato()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- GeoGebra API -->
+<script src="https://www.geogebra.org/apps/deployggb.js"></script>
+<script>
+    function convertToGeoGebra(fn) {
+    if (!fn) return "";
+    var gfn = fn;
+    gfn = gfn.replace(/sen\(/gi, "sin(");
+    gfn = gfn.replace(/log\(/gi, "ln(");
+    gfn = gfn.replace(/sqr\(/gi, "sqrt(");
+    gfn = gfn.replace(/exp\(/gi, "ℯ^(");
+    gfn = gfn.replace(/asn\(/gi, "asin(");
+    gfn = gfn.replace(/acs\(/gi, "acos(");
+    gfn = gfn.replace(/atn\(/gi, "atan(");
+    return gfn;
+    }
+
+    var ggbApp = new GGBApplet({
+    "appName": "graphing",
+    "width": 500,
+    "height": 400,
+    "showToolBar": false,
+    "showAlgebraInput": false,
+    "showMenuBar": false,
+    "appletOnLoad": function () {
+    var fnRaw = document.getElementById("functionInput").value;
+    var fn = convertToGeoGebra(fnRaw);
+
+    if (fn) {
+    ggbApplet.evalCommand("f(x) = " + fn);
+    }
+
+    @if (Model.Result != null && Model.Result.Success)
+    {
+        <text>
+            var root = @Model.Result.Root.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            ggbApplet.evalCommand("R = (" + root + ", 0)");
+            ggbApplet.evalCommand("SetPointSize(R, 5)");
+            ggbApplet.evalCommand("SetColor(R, 255, 0, 0)");
+        </text>
+    }
+    }
+    }, true);
+
+    window.addEventListener("load", function () {
+    ggbApp.inject('ggb-element');
+    });
+
+    function selectCategory(category) {
+    document.querySelectorAll('.method-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+
+    var subTabs = document.getElementById('subTabs');
+    if (category === 'cerrados') {
+    subTabs.innerHTML =
+    '<button type="button" class="sub-tab active" data-method="Biseccion" onclick="selectMethod(this)">Bisección</button>' +
+    '<button type="button" class="sub-tab" data-method="ReglaFalsa" onclick="selectMethod(this)">Regla Falsa</button>';
+    } else {
+    subTabs.innerHTML =
+    '<button type="button" class="sub-tab active" data-method="NewtonRaphson" onclick="selectMethod(this)">Newton-Raphson</button>' +
+    '<button type="button" class="sub-tab" data-method="Secante" onclick="selectMethod(this)">Secante</button>';
+    }
+    selectMethod(subTabs.querySelector('.sub-tab'));
+    }
+
+    function selectMethod(btn) {
+    document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+
+    var method = btn.getAttribute('data-method');
+    document.getElementById('methodInput').value = method;
+
+    var xdGroup = document.getElementById('xdGroup');
+    if (method === 'NewtonRaphson') {
+    xdGroup.style.display = 'none';
+    } else {
+    xdGroup.style.display = 'block';
+    }
+    }
+
+    // Normaliza comas a puntos en inputs numericos antes de enviar
+    document.getElementById('mainForm').addEventListener('submit', function () {
+        document.querySelectorAll('.decimal-input').forEach(function (input) {
+            input.value = input.value.replace(',', '.');
+        });
+    });
+</script>

@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Analisis_Numerico_2026</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Calculus">
+      <HintPath>..\Calculus\Calculus.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,285 @@
+@page
+@model Analisis_Numerico_2026.Pages.Unit2.IndexModel
+@using Analisis_Numerico_2026.Helpers
+
+@{
+    var metodo = string.IsNullOrEmpty(Model.Input.Method) ? "GaussJordan" : Model.Input.Method;
+    var dimension = Model.Input.Dimension > 0 ? Model.Input.Dimension : 3;
+}
+
+<!-- BOTÓN VOLVER AL MENÚ -->
+<a href="/" class="btn-back">&larr; Volver al menú</a>
+
+<!-- HEADER -->
+<div class="header">
+    <span class="header-badge">Unidad 2</span>
+    <span class="header-title">Sistemas de ecuaciones lineales</span>
+</div>
+
+<!-- SUB-TABS -->
+<div class="sub-tabs" id="subTabs">
+    <button type="button" class="sub-tab @(metodo == "GaussJordan" ? "active" : "")"
+            data-method="GaussJordan" onclick="selectMethod(this)">
+        Gauss-Jordan
+    </button>
+    <button type="button" class="sub-tab @(metodo == "GaussSeidel" ? "active" : "")"
+            data-method="GaussSeidel" onclick="selectMethod(this)">
+        Gauss-Seidel
+    </button>
+</div>
+
+<!-- FORMULARIO -->
+<form method="post" id="mainForm">
+    <input type="hidden" asp-for="Input.Method" id="methodInput" value="@metodo" />
+
+    <div class="u2-layout">
+
+        <!-- PANEL IZQUIERDO: configuración -->
+        <div class="form-panel">
+            <div class="form-group">
+                <label>Dimensión</label>
+                <input asp-for="Input.Dimension" id="dimensionInput" type="number"
+                       min="2" max="10" value="@dimension"
+                       oninput="generarMatriz()" required />
+                <span class="helper-text">Número de ecuaciones e incógnitas</span>
+            </div>
+
+            <!-- SEIDEL SETTINGS -->
+            <div id="seidelSettings" style="display: @(metodo == "GaussSeidel" ? "block" : "none"); margin-top: 15px; margin-bottom: 20px;">
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label>Tolerancia</label>
+                    <input asp-for="Input.Tolerancia" type="number" step="0.000001" min="0.000001" max="1" required />
+                </div>
+                <div class="form-group">
+                    <label>Máximas Iteraciones</label>
+                    <input asp-for="Input.MaxIteraciones" type="number" min="1" max="1000" required />
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Calcular</button>
+        </div>
+
+        <!-- PANEL CENTRAL: matriz aumentada -->
+        <div class="matrix-panel">
+            <h4 class="matrix-title">Matriz</h4>
+            <p class="helper-text" style="margin-bottom:12px">
+                Ingresá los coeficientes de cada ecuación y el término independiente (última columna).
+            </p>
+
+            <div id="matrizContainer" style="overflow-x: auto; padding-bottom: 10px;">
+                @{
+                    int cols = dimension + 1;
+                    int totalElementos = dimension * cols;
+                    bool tieneValores = Model.Input.MatrizAumentada.Count == totalElementos;
+                }
+
+                <table class="matrix-table">
+                    <thead>
+                        <tr>
+                            @for (int c = 0; c < dimension; c++)
+                            {
+                                <th>x@(c + 1)</th>
+                            }
+                            <th class="matrix-b-col">b</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int fila = 0; fila < dimension; fila++)
+                        {
+                            <tr>
+                                @for (int col = 0; col < cols; col++)
+                                {
+                                    int idx = fila * cols + col;
+                                    double val = tieneValores ? Model.Input.MatrizAumentada[idx] : 0;
+                                    bool esB = col == dimension;
+                                    <td class="@(esB ? "matrix-b-col" : "")">
+                                        <input type="text" inputmode="decimal"
+                                               name="Input.MatrizAumentada[@idx]"
+                                               value="@val.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                               class="matrix-input @(esB ? "matrix-input-b" : "")"
+                                               onfocus="this.select()"
+                                               required />
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PANEL DERECHO: resultado -->
+        @if (Model.Result != null)
+        {
+            <div class="result-panel">
+                <div class="result-header">
+                    <h3>@Model.Result.Method</h3>
+                    <span class="function-display">Dimensión @Model.Result.Dimension</span>
+                </div>
+                <div class="result-body">
+                    <div class="result-message @(Model.Result.Success ? "success" : "error")">
+                        @Model.Result.Message
+                    </div>
+
+                    @if (Model.Result.Success)
+                    {
+                        <h4 style="margin-bottom:10px">Vector solución</h4>
+                        @for (int i = 0; i < Model.Result.Solucion.Count; i++)
+                        {
+                            <div class="result-item">
+                                <label>x@(i + 1)</label>
+                                <div class="value">@Model.Result.Solucion[i].Formato()</div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="result-panel" style="display:flex;align-items:center;justify-content:center;min-height:200px;">
+                <p style="color:#999;">Ingresá la matriz y presioná Calcular</p>
+            </div>
+        }
+
+    </div>
+</form>
+
+<!-- TABLA DE PASOS DE ELIMINACIÓN (Gauss-Jordan) -->
+@if (Model.Result != null && Model.Result.Success && Model.Result.Pasos.Any())
+{
+    <div class="iterations-section">
+        <h4>Pasos de eliminación</h4>
+
+        @foreach (var paso in Model.Result.Pasos)
+        {
+            <div class="elimination-step">
+                <p class="step-desc">@paso.Descripcion</p>
+                <div style="overflow-x: auto; padding-bottom: 10px;">
+                    <table class="iterations-table">
+                        <thead>
+                            <tr>
+                                @for (int c = 0; c < Model.Result.Dimension; c++)
+                                {
+                                    <th>x@(c + 1)</th>
+                                }
+                                <th>b</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var fila in paso.Matriz)
+                            {
+                                <tr>
+                                    @foreach (var celda in fila)
+                                    {
+                                        <td>@celda.Formato()</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- TABLA DE ITERACIONES (Gauss-Seidel) -->
+@if (Model.Result != null && Model.Result.IteracionesSeidel.Any())
+{
+    <div class="iterations-section">
+        <h4>Iteraciones</h4>
+        <div style="overflow-x: auto; padding-bottom: 10px;">
+            <table class="iterations-table">
+                <thead>
+                    <tr>
+                        <th>Iter.</th>
+                        @for (int c = 0; c < Model.Result.Dimension; c++)
+                        {
+                            <th>x@(c + 1)</th>
+                        }
+                        @for (int c = 0; c < Model.Result.Dimension; c++)
+                        {
+                            <th>Error x@(c + 1)</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var iter in Model.Result.IteracionesSeidel)
+                    {
+                        <tr>
+                            <td><strong>@iter.Iteracion</strong></td>
+                            @foreach (var val in iter.Vector)
+                            {
+                                <td>@val.Formato()</td>
+                            }
+                            @if (iter.Errores.Any())
+                            {
+                                @foreach (var err in iter.Errores)
+                                {
+                                    <td>@err.Formato()</td>
+                                }
+                            }
+                            else
+                            {
+                                @for (int c = 0; c < Model.Result.Dimension; c++)
+                                {
+                                    <td>—</td>
+                                }
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+<script>
+    // Normaliza comas a puntos en todos los inputs de la matriz antes de enviar
+    document.getElementById('mainForm').addEventListener('submit', function () {
+        document.querySelectorAll('.matrix-input').forEach(function (input) {
+            input.value = input.value.replace(',', '.');
+        });
+    });
+
+    function selectMethod(btn) {
+        document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        var method = btn.getAttribute('data-method');
+        document.getElementById('methodInput').value = method;
+        
+        var settingsPanel = document.getElementById('seidelSettings');
+        if(settingsPanel) {
+            settingsPanel.style.display = method === 'GaussSeidel' ? 'block' : 'none';
+        }
+    }
+
+    function generarMatriz() {
+        var dim = parseInt(document.getElementById('dimensionInput').value);
+        if (!dim || dim < 2 || dim > 10) return;
+
+        var cols = dim + 1;
+        var html = '<table class="matrix-table"><thead><tr>';
+
+        for (var c = 0; c < dim; c++)
+            html += '<th>x' + (c + 1) + '</th>';
+        html += '<th class="matrix-b-col">b</th></tr></thead><tbody>';
+
+        for (var fila = 0; fila < dim; fila++) {
+            html += '<tr>';
+            for (var col = 0; col < cols; col++) {
+                var idx = fila * cols + col;
+                var esB = col === dim;
+                html += '<td class="' + (esB ? 'matrix-b-col' : '') + '">';
+                html += '<input type="text" inputmode="decimal" name="Input.MatrizAumentada[' + idx + ']" value="0"';
+                html += ' class="matrix-input ' + (esB ? 'matrix-input-b' : '') + '" onfocus="this.select()" required />';
+                html += '</td>';
+            }
+            html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+        document.getElementById('matrizContainer').innerHTML = html;
+    }
+</script>
