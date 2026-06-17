@@ -1,0 +1,529 @@
+@page
+@model Analisis_Numerico_2026.Pages.Unit4.IndexModel
+@using Analisis_Numerico_2026.Helpers
+@{
+    ViewData["Title"] = "Integración Numérica - Análisis Numérico";
+}
+
+<!-- BOTÓN VOLVER AL MENÚ -->
+<a href="/" class="btn-back">&larr; Volver al menú</a>
+
+<!-- HEADER -->
+<div class="header">
+    <span class="header-badge">Unidad 4</span>
+    <span class="header-title">Integración Numérica</span>
+</div>
+
+<style>
+    .u4-layout {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 25px;
+        align-items: start;
+        margin-top: 10px;
+    }
+
+    /* Custom Select Styling */
+    .custom-select-container {
+        position: relative;
+        width: 100%;
+        user-select: none;
+    }
+
+    .custom-select-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        font-size: 15px;
+        background-color: rgba(0, 0, 0, 0.2);
+        color: #fff;
+        cursor: pointer;
+        transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+    }
+
+    .custom-select-trigger:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .custom-select-container.open .custom-select-trigger {
+        border-color: #0072ff;
+        background-color: rgba(0, 112, 255, 0.05);
+        box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.25);
+    }
+
+    .custom-select-arrow {
+        border: solid rgba(255, 255, 255, 0.7);
+        border-width: 0 2px 2px 0;
+        display: inline-block;
+        padding: 3px;
+        transform: rotate(45deg);
+        transition: transform 0.2s ease;
+        margin-right: 5px;
+    }
+
+    .custom-select-container.open .custom-select-arrow {
+        transform: rotate(-135deg);
+    }
+
+    .custom-select-options {
+        display: none;
+        position: absolute;
+        top: 105%;
+        left: 0;
+        right: 0;
+        background-color: #1a1e29;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        z-index: 1000;
+        max-height: 250px;
+        overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .custom-select-container.open .custom-select-options {
+        display: block;
+    }
+
+    .custom-select-option {
+        padding: 12px 15px;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .custom-select-option:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        color: #fff;
+    }
+
+    .custom-select-option.selected {
+        background-color: rgba(0, 114, 255, 0.25);
+        color: #60a5fa;
+        font-weight: 600;
+    }
+
+    /* Ocultar select nativo de forma accesible */
+    .select-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+    }
+
+    .output-details {
+        background: rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 15px;
+    }
+
+    .detail-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .detail-label {
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .detail-value {
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .cards-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .result-card-value {
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        font-family: 'Inter', monospace;
+        margin-top: 8px;
+        display: block;
+    }
+
+    .result-card-desc {
+        font-size: 11px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: block;
+    }
+
+    .geogebra-container {
+        background: rgba(255, 255, 255, 0.01);
+        border-radius: 12px;
+    }
+
+    @@media (max-width: 992px) {
+        .u4-layout {
+            grid-template-columns: 1fr;
+        }
+        .cards-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<form method="post" id="mainForm">
+    <div class="u4-layout">
+
+        <!-- PANEL IZQUIERDO: Datos de Entrada -->
+        <div class="form-panel">
+            <h3 style="margin-bottom: 20px; font-size: 18px; color: #fff;">Datos de Entrada</h3>
+
+            <div class="form-group">
+                <label>Función a integrar</label>
+                <input asp-for="Input.Function" id="functionInput" placeholder="Ej: 1/x + x" required />
+                <span class="helper-text">Función $f(x)$ a evaluar</span>
+            </div>
+
+            <div class="form-group">
+                <label>Extremo Izquierdo (Xi)</label>
+                <input asp-for="Input.Xi" type="text" inputmode="decimal" class="decimal-input" required />
+                <span class="helper-text">Límite inferior de integración ($a$)</span>
+            </div>
+
+            <div class="form-group">
+                <label>Extremo Derecho (Xd)</label>
+                <input asp-for="Input.Xd" type="text" inputmode="decimal" class="decimal-input" required />
+                <span class="helper-text">Límite superior de integración ($b$)</span>
+            </div>
+
+            <div class="form-group">
+                <label>Método a utilizar</label>
+                <div class="custom-select-container" id="customSelectMethod">
+                    <div class="custom-select-trigger">
+                        <span class="custom-select-value">Cargando...</span>
+                        <span class="custom-select-arrow"></span>
+                    </div>
+                    <div class="custom-select-options">
+                        <div class="custom-select-option" data-value="TrapeciosSimple">Trapecios Simple</div>
+                        <div class="custom-select-option" data-value="TrapeciosMultiple">Trapecios Múltiple</div>
+                        <div class="custom-select-option" data-value="Simpson13Simple">Simpson 1/3 Simple</div>
+                        <div class="custom-select-option" data-value="Simpson13Multiple">Simpson 1/3 Múltiple</div>
+                        <div class="custom-select-option" data-value="Simpson38Simple">Simpson 3/8 Simple</div>
+                        <div class="custom-select-option" data-value="SimpsonCombinado">Simpson Combinado (1/3 + 3/8)</div>
+                    </div>
+                </div>
+                <select asp-for="Input.Method" class="select-input" id="methodSelect" onchange="toggleSubintervalosGroup()" required>
+                    <option value="TrapeciosSimple">Trapecios Simple</option>
+                    <option value="TrapeciosMultiple">Trapecios Múltiple</option>
+                    <option value="Simpson13Simple">Simpson 1/3 Simple</option>
+                    <option value="Simpson13Multiple">Simpson 1/3 Múltiple</option>
+                    <option value="Simpson38Simple">Simpson 3/8 Simple</option>
+                    <option value="SimpsonCombinado">Simpson Combinado (1/3 + 3/8)</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="subintervalosGroup" style="display: none;">
+                <label>Cantidad de subintervalos (n)</label>
+                <input asp-for="Input.Subintervalos" type="number" min="1" max="100000" class="decimal-input" />
+                <span class="helper-text">Número de segmentos ($n \ge 1$)</span>
+            </div>
+
+            <button type="submit" class="btn-submit" style="margin-top: 15px;">Calcular</button>
+        </div>
+
+        <!-- PANEL DERECHO: Datos de Salida y Gráfico -->
+        @if (Model.Result != null)
+        {
+            <div class="result-panel">
+                <div class="result-header" style="text-align: left; padding: 20px 25px;">
+                    <h3 style="font-size: 20px; margin-bottom: 0;">Datos de Salida</h3>
+                </div>
+                <div class="result-body" style="padding: 25px;">
+
+                    @if (!Model.Result.Success)
+                    {
+                        <div class="result-message error">
+                            @Model.Result.Message
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Datos de la función -->
+                        <div class="output-details">
+                            <h4 style="margin-bottom: 12px; color: #6C63FF; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Datos de la Función</h4>
+                            <div class="detail-item">
+                                <span class="detail-label">Función ingresada:</span>
+                                <span class="detail-value" style="font-family: 'Inter', monospace;">@Model.Result.Function</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Límite inferior (Xi):</span>
+                                <span class="detail-value">@Model.Input.Xi.Formato()</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Límite superior (Xd):</span>
+                                <span class="detail-value">@Model.Input.Xd.Formato()</span>
+                            </div>
+                            @if (Model.Result.Method == "Trapecios Múltiple")
+                            {
+                                <div class="detail-item">
+                                    <span class="detail-label">Subintervalos (n):</span>
+                                    <span class="detail-value">@Model.Input.Subintervalos</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Resultados -->
+                        <h4 style="margin-bottom: 12px; color: #fff; font-size: 15px; font-weight: 600;">Resultados</h4>
+                        <div class="cards-row">
+                            <div class="glass-panel" style="padding: 20px; border-left: 4px solid #6C63FF;">
+                                <span class="result-card-desc" style="color: #a29bfe;">Área de la Función</span>
+                                <span class="result-card-value">@Model.Result.Area.Formato()</span>
+                            </div>
+                            <div class="glass-panel" style="padding: 20px; border-left: 4px solid #2ed573;">
+                                <span class="result-card-desc" style="color: #2ed573;">Motivo de Salida</span>
+                                <span class="result-card-value" style="font-size: 15px; font-weight: 700; color: #cbd5e1; margin-top: 15px;">@Model.Result.Message</span>
+                            </div>
+                        </div>
+
+                        <!-- Gráfico -->
+                        <div class="geogebra-container" style="margin-top: 25px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h4 style="margin: 0; color: #fff; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Valor Real del Área / Gráfico</h4>
+                                <button type="button" id="btnToggleTamanio" class="btn-action btn-blue" style="max-width: 160px; padding: 6px 12px; font-size: 11px; margin-top: 0;" onclick="toggleGraficoTamanio()">🔍 Agrandar Gráfico</button>
+                            </div>
+                            <div id="ggb-container-wrapper" style="width: 100%; height: 450px; transition: height 0.3s ease; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08);">
+                                <div id="ggb-element" style="width: 100%; height: 100%;"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="result-panel" style="display:flex;align-items:center;justify-content:center;min-height:480px;">
+                <p style="color:#999;font-size:16px;">Ingresá los datos y presioná Calcular</p>
+            </div>
+        }
+
+    </div>
+</form>
+
+<!-- GeoGebra API -->
+<script src="https://www.geogebra.org/apps/deployggb.js"></script>
+
+<script>
+    function initCustomSelect(containerId, nativeSelectId) {
+        var container = document.getElementById(containerId);
+        var nativeSelect = document.getElementById(nativeSelectId);
+        if (!container || !nativeSelect) return;
+
+        var trigger = container.querySelector('.custom-select-trigger');
+        var valueSpan = container.querySelector('.custom-select-value');
+        var options = container.querySelectorAll('.custom-select-option');
+
+        // Toggle dropdown
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.querySelectorAll('.custom-select-container').forEach(function(other) {
+                if (other !== container) {
+                    other.classList.remove('open');
+                }
+            });
+            container.classList.toggle('open');
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', function() {
+            container.classList.remove('open');
+        });
+
+        // Handle option click
+        options.forEach(function(option) {
+            option.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var val = this.getAttribute('data-value');
+                var label = this.textContent;
+
+                valueSpan.textContent = label;
+                options.forEach(function(opt) { opt.classList.remove('selected'); });
+                this.classList.add('selected');
+
+                nativeSelect.value = val;
+                
+                // Trigger change event
+                var event = new Event('change', { bubbles: true });
+                nativeSelect.dispatchEvent(event);
+
+                container.classList.remove('open');
+            });
+        });
+
+        // Sync from native select to custom select
+        function syncFromNative() {
+            var val = nativeSelect.value;
+            var selectedOpt = Array.from(options).find(function(opt) {
+                return opt.getAttribute('data-value') === val;
+            });
+            if (selectedOpt) {
+                valueSpan.textContent = selectedOpt.textContent;
+                options.forEach(function(opt) { opt.classList.remove('selected'); });
+                selectedOpt.classList.add('selected');
+            }
+        }
+
+        syncFromNative();
+        nativeSelect.addEventListener('change', syncFromNative);
+    }
+
+    function toggleSubintervalosGroup() {
+        var select = document.getElementById('methodSelect');
+        var group = document.getElementById('subintervalosGroup');
+        if (select && group) {
+            var val = select.value;
+            if (val === 'TrapeciosMultiple' || val === 'Simpson13Multiple' || val === 'SimpsonCombinado') {
+                group.style.display = 'block';
+            } else {
+                group.style.display = 'none';
+            }
+        }
+    }
+
+    window.addEventListener('load', function() {
+        toggleSubintervalosGroup();
+        initCustomSelect("customSelectMethod", "methodSelect");
+    });
+
+    // Normalizar comas a puntos al enviar el formulario
+    document.getElementById('mainForm').addEventListener('submit', function () {
+        document.querySelectorAll('.decimal-input').forEach(function (input) {
+            input.value = input.value.replace(',', '.');
+        });
+    });
+
+    function convertToGeoGebra(fn) {
+        if (!fn) return "";
+        var gfn = fn;
+        gfn = gfn.replace(/sen\(/gi, "sin(");
+        gfn = gfn.replace(/log\(/gi, "ln(");
+        gfn = gfn.replace(/sqr\(/gi, "sqrt(");
+        gfn = gfn.replace(/exp\(/gi, "ℯ^(");
+        gfn = gfn.replace(/asn\(/gi, "asin(");
+        gfn = gfn.replace(/acs\(/gi, "acos(");
+        gfn = gfn.replace(/atn\(/gi, "atan(");
+        return gfn;
+    }
+
+    // Carga de GeoGebra
+    @if (Model.Result != null && Model.Result.Success)
+    {
+        var xiStr = Model.Input.Xi.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var xdStr = Model.Input.Xd.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var nVal = Model.Result.Method == "Trapecios Múltiple" ? Model.Input.Subintervalos : 1;
+        
+        <text>
+        var containerElement = document.getElementById('ggb-container-wrapper');
+        var initialWidth = containerElement ? containerElement.clientWidth : 600;
+        var initialHeight = containerElement ? containerElement.clientHeight : 450;
+
+        var ggbApp = new GGBApplet({
+            "appName": "graphing",
+            "width": initialWidth,
+            "height": initialHeight,
+            "showToolBar": false,
+            "showAlgebraInput": false,
+            "showMenuBar": false,
+            "showZoomButtons": true,
+            "enableShiftDragZoom": true,
+            "allowUpscale": true,
+            "appletOnLoad": function () {
+                // Asegurar tamaño
+                try {
+                    ggbApplet.setSize(containerElement.clientWidth, containerElement.clientHeight);
+                } catch(e) {}
+
+                var rawFn = "@Html.Raw(Model.Result.Function)";
+                var fn = convertToGeoGebra(rawFn);
+
+                if (fn) {
+                    // 1. Graficar la función
+                    ggbApplet.evalCommand("f(x) = " + fn);
+                    ggbApplet.evalCommand("SetColor(f, 46, 213, 115)"); // Verde
+                    ggbApplet.evalCommand("SetLineThickness(f, 3)");
+
+                    // 2. Graficar el valor real del área utilizando Integral
+                    ggbApplet.evalCommand("a = Integral(f, @(xiStr), @(xdStr))");
+                    ggbApplet.evalCommand("SetColor(a, 0, 114, 255)"); // Azul
+                    ggbApplet.evalCommand("SetFilling(a, 0.15)"); // Semi-transparente
+                    
+                    // 3. Graficar la aproximación por trapecios (solo para métodos de Trapecios)
+                    var method = "@Model.Input.Method";
+                    if (method === "TrapeciosSimple" || method === "TrapeciosMultiple") {
+                        ggbApplet.evalCommand("t = TrapezoidalSum(f, @(xiStr), @(xdStr), @(nVal))");
+                        ggbApplet.evalCommand("SetColor(t, 255, 75, 43)"); // Rojo/Naranja
+                        ggbApplet.evalCommand("SetFilling(t, 0.25)"); // Relleno de trapecios
+                    }
+                }
+
+                // Ajustar zoom inicial
+                var xi = @(xiStr);
+                var xd = @(xdStr);
+                var padding = Math.abs(xd - xi) * 0.5;
+                if (padding === 0) padding = 2;
+                ggbApplet.evalCommand("ZoomIn(" + (xi - padding) + ", -2, " + (xd + padding) + ", 6)");
+            }
+        }, true);
+
+        window.addEventListener("load", function () {
+            ggbApp.inject('ggb-element');
+        });
+
+        function toggleGraficoTamanio() {
+            var container = document.getElementById('ggb-container-wrapper');
+            var btn = document.getElementById('btnToggleTamanio');
+            var currentHeight = container.style.height || '450px';
+
+            if (currentHeight === '650px') {
+                container.style.height = '450px';
+                btn.textContent = "🔍 Agrandar Gráfico";
+            } else {
+                container.style.height = '650px';
+                btn.textContent = "🔍 Achicar Gráfico";
+            }
+
+            setTimeout(function() {
+                if (window.ggbApplet) {
+                    ggbApplet.setSize(container.clientWidth, container.clientHeight);
+                }
+            }, 350);
+        }
+
+        window.addEventListener('resize', function() {
+            if (window.ggbApplet) {
+                var container = document.getElementById('ggb-container-wrapper');
+                if (container) {
+                    ggbApplet.setSize(container.clientWidth, container.clientHeight);
+                }
+            }
+        });
+        </text>
+    }
+</script>

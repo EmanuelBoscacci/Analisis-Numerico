@@ -1,0 +1,792 @@
+@page
+@model Analisis_Numerico_2026.Pages.Unit3.IndexModel
+@using Analisis_Numerico_2026.Helpers
+@{
+    ViewData["Title"] = "Regresión Lineal - Análisis Numérico";
+}
+
+<!-- BOTÓN VOLVER AL MENÚ -->
+<a href="/" class="btn-back">&larr; Volver al menú</a>
+
+<!-- HEADER -->
+<div class="header">
+    <span class="header-badge">Unidad 3</span>
+    <span class="header-title">Regresión Lineal</span>
+</div>
+
+<style>
+    .u3-layout {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 25px;
+        align-items: start;
+        margin-top: 10px;
+    }
+
+    /* Custom Select Styling */
+    .custom-select-container {
+        position: relative;
+        width: 100%;
+        user-select: none;
+    }
+
+    .custom-select-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        font-size: 15px;
+        background-color: rgba(0, 0, 0, 0.2);
+        color: #fff;
+        cursor: pointer;
+        transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+    }
+
+    .custom-select-trigger:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .custom-select-container.open .custom-select-trigger {
+        border-color: #0072ff;
+        background-color: rgba(0, 112, 255, 0.05);
+        box-shadow: 0 0 0 3px rgba(0, 114, 255, 0.25);
+    }
+
+    .custom-select-arrow {
+        border: solid rgba(255, 255, 255, 0.7);
+        border-width: 0 2px 2px 0;
+        display: inline-block;
+        padding: 3px;
+        transform: rotate(45deg);
+        transition: transform 0.2s ease;
+        margin-right: 5px;
+    }
+
+    .custom-select-container.open .custom-select-arrow {
+        transform: rotate(-135deg);
+    }
+
+    .custom-select-options {
+        display: none;
+        position: absolute;
+        top: 105%;
+        left: 0;
+        right: 0;
+        background-color: #1a1e29;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        z-index: 1000;
+        max-height: 250px;
+        overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .custom-select-container.open .custom-select-options {
+        display: block;
+    }
+
+    .custom-select-option {
+        padding: 12px 15px;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .custom-select-option:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        color: #fff;
+    }
+
+    .custom-select-option.selected {
+        background-color: rgba(0, 114, 255, 0.25);
+        color: #60a5fa;
+        font-weight: 600;
+    }
+
+    /* Ocultar select nativo de forma accesible */
+    .select-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+    }
+
+    .point-inputs {
+        display: flex;
+        gap: 10px;
+    }
+
+    .point-input {
+        flex: 1;
+    }
+
+    .btn-add-point {
+        background: linear-gradient(135deg, #6C63FF, #4834d4);
+        color: white;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-add-point:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(108, 99, 255, 0.4);
+    }
+
+    .points-textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        font-size: 15px;
+        background-color: rgba(0, 0, 0, 0.2);
+        color: #fff;
+        font-family: 'Inter', monospace;
+        resize: vertical;
+        outline: none;
+    }
+
+    .points-textarea[readonly] {
+        background-color: rgba(0, 0, 0, 0.1);
+        color: #a0aec0;
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .textarea-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .btn-action {
+        flex: 1;
+        padding: 10px 6px;
+        border: none;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        color: white;
+        transition: all 0.2s ease;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-red { background-color: #ff4757; }
+    .btn-red:hover { box-shadow: 0 4px 12px rgba(255, 71, 87, 0.35); }
+    .btn-yellow { background-color: #ffa502; }
+    .btn-yellow:hover { box-shadow: 0 4px 12px rgba(255, 165, 2, 0.35); }
+    .btn-blue { background-color: #1e90ff; }
+    .btn-blue:hover { box-shadow: 0 4px 12px rgba(30, 144, 255, 0.35); }
+    .btn-blue.active-editing {
+        background-color: #2ed573;
+        animation: pulse-edit 1.5s infinite;
+    }
+
+    .btn-green-calc {
+        background: linear-gradient(135deg, #2ed573, #26af5f) !important;
+        box-shadow: 0 6px 20px rgba(46, 213, 115, 0.3) !important;
+    }
+    .btn-green-calc:hover {
+        box-shadow: 0 8px 25px rgba(46, 213, 115, 0.5) !important;
+    }
+
+    .output-row {
+        margin-bottom: 15px;
+        font-size: 16px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .output-label {
+        font-weight: 500;
+        color: #94a3b8;
+    }
+
+    .output-value {
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .highlight-blue {
+        color: #00c6ff;
+    }
+
+    .text-success {
+        color: #2ed573;
+    }
+
+    .text-error {
+        color: #ff4757;
+    }
+
+    .visual-container {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 25px;
+        margin-top: 25px;
+        align-items: start;
+    }
+
+    .points-list-container {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        border-radius: 12px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .point-list-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 14px;
+    }
+
+    .point-dot-icon {
+        width: 10px;
+        height: 10px;
+        background-color: #00c6ff;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 8px #00c6ff;
+    }
+
+    .point-text {
+        color: #cbd5e1;
+        font-family: 'Inter', monospace;
+    }
+
+    .geogebra-container {
+        background: rgba(255, 255, 255, 0.01);
+        border-radius: 12px;
+    }
+
+    @@keyframes pulse-edit {
+        0% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(46, 213, 115, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
+    }
+
+    @@media (max-width: 992px) {
+        .u3-layout {
+            grid-template-columns: 1fr;
+        }
+        .visual-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<form method="post" id="mainForm">
+    <div class="u3-layout">
+
+        <!-- PANEL IZQUIERDO: Datos de Entrada -->
+        <div class="form-panel">
+            <h3 style="margin-bottom: 20px; font-size: 18px; color: #fff;">Datos de Entrada</h3>
+
+            <input type="hidden" asp-for="Input.Method" value="Both" />
+
+            <div class="form-group" id="gradoGroup">
+                <label>Grado del polinomio</label>
+                <input asp-for="Input.Grado" type="number" min="2" max="10" value="@(Model.Input.Grado > 1 ? Model.Input.Grado : 2)" class="decimal-input" />
+                <span class="helper-text">Grado del polinomio (entre 2 y 10)</span>
+            </div>
+
+            <div class="form-group">
+                <label>Tolerancia (%)</label>
+                <input asp-for="Input.Tolerancia" type="text" inputmode="decimal" class="decimal-input" required />
+                <span class="helper-text">Coeficiente de correlación r mínimo aceptable</span>
+            </div>
+
+            <div class="form-group">
+                <label>Ingresar Punto</label>
+                <div class="point-inputs">
+                    <input type="text" id="inputX" placeholder="X" class="point-input decimal-input" onkeydown="handlePointKeydown(event)" />
+                    <input type="text" id="inputY" placeholder="Y" class="point-input decimal-input" onkeydown="handlePointKeydown(event)" />
+                    <button type="button" class="btn-add-point" onclick="agregarPunto()">Agregar</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Puntos Ingresados:</label>
+                <textarea asp-for="Input.RawPoints" id="puntosTextArea" rows="8" readonly class="points-textarea" required placeholder="Ingresá puntos usando los campos de arriba."></textarea>
+                <div class="textarea-actions">
+                    <button type="button" class="btn-action btn-red" onclick="borrarUltimo()">Borrar Último</button>
+                    <button type="button" class="btn-action btn-yellow" onclick="borrarTodos()">Borrar Todo</button>
+                    <button type="button" class="btn-action btn-blue" id="btnEditar" onclick="toggleEditar()">Editar</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit btn-green-calc">Calcular</button>
+        </div>
+
+        <!-- PANEL DERECHO: Datos de Salida / Gráfico -->
+        @if (Model.Result != null)
+        {
+            <div class="result-panel">
+                <div class="result-header" style="text-align: left; padding: 20px 25px;">
+                    <h3 style="font-size: 20px; margin-bottom: 0;">Datos de Salida</h3>
+                </div>
+                <div class="result-body" style="padding: 25px;">
+                    
+                    @if (!Model.Result.Success)
+                    {
+                        <div class="result-message error">
+                            @Model.Result.Message
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Comparación de Ajustes -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                            <!-- Columna: Regresión Lineal -->
+                            <div class="glass-panel" style="padding: 20px; border-left: 4px solid #8b5cf6; border-radius: 10px; background: rgba(139, 92, 246, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-left: 4px solid #8b5cf6;">
+                                <h4 style="margin-top: 0; color: #8b5cf6; font-size: 15px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Regresión Lineal</h4>
+                                @if (Model.Result.LinearSuccess)
+                                {
+                                    <div class="output-row" style="margin-bottom: 10px; font-size: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                                        <span class="output-label" style="font-size: 11px; text-transform: uppercase; color: #888;">Función Obtenida:</span>
+                                        <span class="output-value" style="font-size: 16px; font-family: 'Inter', monospace; color: #8b5cf6; font-weight: 700; white-space: normal; word-break: break-all;">@Model.Result.LinearFuncionObtenida</span>
+                                    </div>
+                                    <div class="output-row" style="margin-bottom: 10px; font-size: 14px; display: flex; justify-content: space-between; width: 100%;">
+                                        <span class="output-label">Correlación (r):</span>
+                                        <span class="output-value" style="font-weight: 700; color: #fff;">@Model.Result.LinearR.Formato()% (Pearson: @Model.Result.LinearPearsonR.Formato())</span>
+                                    </div>
+                                    <div class="output-row" style="margin-bottom: 0; font-size: 14px; display: flex; justify-content: space-between; width: 100%;">
+                                        <span class="output-label">Efectividad:</span>
+                                        <span class="output-value @(Model.Result.LinearAjusteAceptable ? "text-success" : "text-error")" style="font-weight: 700;">
+                                            @(Model.Result.LinearAjusteAceptable ? "Aceptable" : "No aceptable")
+                                        </span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-error" style="font-size: 13px;">@Model.Result.LinearMessage</div>
+                                }
+                            </div>
+
+                            <!-- Columna: Regresión Polinomial -->
+                            <div class="glass-panel" style="padding: 20px; border-left: 4px solid #2ed573; border-radius: 10px; background: rgba(46, 213, 115, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-left: 4px solid #2ed573;">
+                                <h4 style="margin-top: 0; color: #2ed573; font-size: 15px; margin-bottom: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Regresión Polinomial (Grado @Model.Result.PolyGrado)</h4>
+                                @if (Model.Result.PolySuccess)
+                                {
+                                    <div class="output-row" style="margin-bottom: 10px; font-size: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                                        <span class="output-label" style="font-size: 11px; text-transform: uppercase; color: #888;">Función Obtenida:</span>
+                                        <span class="output-value" style="font-size: 16px; font-family: 'Inter', monospace; color: #2ed573; font-weight: 700; white-space: normal; word-break: break-all;">@Model.Result.PolyFuncionObtenida</span>
+                                    </div>
+                                    <div class="output-row" style="margin-bottom: 10px; font-size: 14px; display: flex; justify-content: space-between; width: 100%;">
+                                        <span class="output-label">Correlación (r):</span>
+                                        <span class="output-value" style="font-weight: 700; color: #fff;">@Model.Result.PolyR.Formato()% (Pearson: @Model.Result.PolyPearsonR.Formato())</span>
+                                    </div>
+                                    <div class="output-row" style="margin-bottom: 0; font-size: 14px; display: flex; justify-content: space-between; width: 100%;">
+                                        <span class="output-label">Efectividad:</span>
+                                        <span class="output-value @(Model.Result.PolyAjusteAceptable ? "text-success" : "text-error")" style="font-weight: 700;">
+                                            @(Model.Result.PolyAjusteAceptable ? "Aceptable" : "No aceptable")
+                                        </span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-error" style="font-size: 13px;">@Model.Result.PolyMessage</div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="visual-container">
+                            <!-- Lista de puntos -->
+                            <div class="points-list-container">
+                                <h4 style="margin-bottom: 15px; color: #fff; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Puntos</h4>
+                                @for (int i = 0; i < Model.Result.Puntos.Count; i++)
+                                {
+                                    var p = Model.Result.Puntos[i];
+                                    <div class="point-list-item">
+                                        <span class="point-dot-icon"></span>
+                                        <span class="point-text">Punto@(i) = (@p[0].Formato(), @p[1].Formato())</span>
+                                    </div>
+                                }
+                            </div>
+                            <!-- Gráfico de GeoGebra -->
+                            <div class="geogebra-container">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <h4 style="margin: 0; color: #fff; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Gráfico Interactivo</h4>
+                                    <button type="button" id="btnToggleTamanio" class="btn-action btn-blue" style="max-width: 160px; padding: 6px 12px; font-size: 11px; margin-top: 0;" onclick="toggleGraficoTamanio()">🔍 Agrandar Gráfico</button>
+                                </div>
+                                <div id="ggb-container-wrapper" style="width: 100%; height: 400px; transition: height 0.3s ease; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08);">
+                                    <div id="ggb-element" style="width: 100%; height: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="result-panel" style="display:flex;align-items:center;justify-content:center;min-height:480px;">
+                <p style="color:#999;font-size:16px;">Ingresá los datos y presioná Calcular</p>
+            </div>
+        }
+
+    </div>
+</form>
+
+<!-- GeoGebra API -->
+<script src="https://www.geogebra.org/apps/deployggb.js"></script>
+
+<script>
+    function initCustomSelect(containerId, nativeSelectId) {
+        var container = document.getElementById(containerId);
+        var nativeSelect = document.getElementById(nativeSelectId);
+        if (!container || !nativeSelect) return;
+
+        var trigger = container.querySelector('.custom-select-trigger');
+        var valueSpan = container.querySelector('.custom-select-value');
+        var options = container.querySelectorAll('.custom-select-option');
+
+        // Toggle dropdown
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.querySelectorAll('.custom-select-container').forEach(function(other) {
+                if (other !== container) {
+                    other.classList.remove('open');
+                }
+            });
+            container.classList.toggle('open');
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', function() {
+            container.classList.remove('open');
+        });
+
+        // Handle option click
+        options.forEach(function(option) {
+            option.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var val = this.getAttribute('data-value');
+                var label = this.textContent;
+
+                valueSpan.textContent = label;
+                options.forEach(function(opt) { opt.classList.remove('selected'); });
+                this.classList.add('selected');
+
+                nativeSelect.value = val;
+                
+                // Trigger change event
+                var event = new Event('change', { bubbles: true });
+                nativeSelect.dispatchEvent(event);
+
+                container.classList.remove('open');
+            });
+        });
+
+        // Sync from native select to custom select
+        function syncFromNative() {
+            var val = nativeSelect.value;
+            var selectedOpt = Array.from(options).find(function(opt) {
+                return opt.getAttribute('data-value') === val;
+            });
+            if (selectedOpt) {
+                valueSpan.textContent = selectedOpt.textContent;
+                options.forEach(function(opt) { opt.classList.remove('selected'); });
+                selectedOpt.classList.add('selected');
+            }
+        }
+
+        syncFromNative();
+        nativeSelect.addEventListener('change', syncFromNative);
+    }
+
+    function toggleGradoGroup() {
+        var select = document.getElementById('methodSelect');
+        var group = document.getElementById('gradoGroup');
+        if (select && group) {
+            if (select.value === 'RegresionPolinomial') {
+                group.style.display = 'block';
+            } else {
+                group.style.display = 'none';
+            }
+        }
+    }
+
+    window.addEventListener('load', function() {
+        // Dropdown settings removed since both models run simultaneously.
+    });
+
+    function handlePointKeydown(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            agregarPunto();
+        }
+    }
+
+    function agregarPunto() {
+        var xInput = document.getElementById('inputX');
+        var yInput = document.getElementById('inputY');
+        
+        var xVal = xInput.value.trim().replace(',', '.');
+        var yVal = yInput.value.trim().replace(',', '.');
+
+        if (xVal === "" || yVal === "") {
+            return;
+        }
+
+        if (isNaN(xVal) || isNaN(yVal)) {
+            alert("Por favor ingrese valores numéricos válidos en X e Y.");
+            return;
+        }
+
+        var textArea = document.getElementById('puntosTextArea');
+        var line = xVal + ", " + yVal;
+        
+        if (textArea.value.trim() === "" || textArea.value.indexOf("Ingresá puntos") === 0) {
+            textArea.value = line;
+        } else {
+            textArea.value = textArea.value.trim() + "\n" + line;
+        }
+
+        xInput.value = "";
+        yInput.value = "";
+        xInput.focus();
+    }
+
+    function borrarUltimo() {
+        var textArea = document.getElementById('puntosTextArea');
+        var text = textArea.value.trim();
+        if (text === "" || text.indexOf("Ingresá puntos") === 0) return;
+
+        var lines = text.split('\n');
+        if (lines.length > 0) {
+            lines.pop();
+            textArea.value = lines.join('\n');
+        }
+        if (textArea.value === "") {
+            textArea.value = "";
+        }
+    }
+
+    function borrarTodos() {
+        if (confirm("¿Está seguro de borrar todos los puntos?")) {
+            document.getElementById('puntosTextArea').value = "";
+            document.getElementById('inputX').focus();
+        }
+    }
+
+    function toggleEditar() {
+        var textArea = document.getElementById('puntosTextArea');
+        var btn = document.getElementById('btnEditar');
+
+        if (textArea.hasAttribute('readonly')) {
+            textArea.removeAttribute('readonly');
+            textArea.focus();
+            btn.textContent = "Bloquear";
+            btn.classList.add('active-editing');
+        } else {
+            textArea.setAttribute('readonly', 'true');
+            btn.textContent = "Editar";
+            btn.classList.remove('active-editing');
+        }
+    }
+
+    // Normalizar comas a puntos al enviar el formulario
+    document.getElementById('mainForm').addEventListener('submit', function (e) {
+        document.querySelectorAll('.decimal-input').forEach(function (input) {
+            input.value = input.value.replace(',', '.');
+        });
+        
+        var textArea = document.getElementById('puntosTextArea');
+        if (textArea.value.trim() === "" || textArea.value.indexOf("Ingresá puntos") === 0) {
+            alert("Debe ingresar al menos dos puntos para calcular.");
+            e.preventDefault();
+        }
+    });
+
+    // Carga de GeoGebra
+    @if (Model.Result != null && Model.Result.Success && Model.Result.Puntos.Any())
+    {
+        <text>
+        var containerElement = document.getElementById('ggb-container-wrapper');
+        var initialWidth = containerElement ? containerElement.clientWidth : 600;
+        var initialHeight = containerElement ? containerElement.clientHeight : 400;
+
+        var ggbApp = new GGBApplet({
+            "appName": "graphing",
+            "width": initialWidth,
+            "height": initialHeight,
+            "showToolBar": false,
+            "showAlgebraInput": false,
+            "showMenuBar": false,
+            "showZoomButtons": true,
+            "enableShiftDragZoom": true,
+            "allowUpscale": true,
+            "appletOnLoad": function () {
+                // Ocultar el panel de álgebra (Algebra View) de la izquierda
+                try {
+                    ggbApplet.showView("Algebra", false);
+                    ggbApplet.evalCommand("ShowView(1, false)");
+                } catch(e) {
+                    console.log("Error al ocultar Algebra View:", e);
+                }
+
+                // Ajustar tamaño para asegurar consistencia
+                try {
+                    ggbApplet.setSize(containerElement.clientWidth, containerElement.clientHeight);
+                } catch(e) {}
+
+                // Configurar límites automáticos y agregar puntos
+                var xValues = [];
+                var yValues = [];
+                @for (int i = 0; i < Model.Result.Puntos.Count; i++)
+                {
+                    var pt = Model.Result.Puntos[i];
+                    var xStr = pt[0].ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    var yStr = pt[1].ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    <text>
+                    ggbApplet.evalCommand("P@(i) = (@(xStr), @(yStr))");
+                    ggbApplet.evalCommand("SetPointSize(P@(i), 5)");
+                    ggbApplet.evalCommand("SetColor(P@(i), 0, 198, 255)"); // Celeste neon
+                    ggbApplet.evalCommand("ShowLabel(P@(i), true)");
+                    xValues.push(@(xStr));
+                    yValues.push(@(yStr));
+                    </text>
+                }
+
+                // Graficar Regresión Lineal
+                @if (Model.Result.LinearSuccess && Model.Result.LinearCoeficientes.Any())
+                {
+                    <text>
+                    var linearTerms = [];
+                    @for (int i = 0; i < Model.Result.LinearCoeficientes.Count; i++)
+                    {
+                        var coefVal = Model.Result.LinearCoeficientes[i].ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        <text>
+                        var cLinear = @(coefVal);
+                        if (cLinear !== 0 || @(i) === 0) {
+                            if (@(i) === 0) {
+                                linearTerms.push(cLinear);
+                            } else if (@(i) === 1) {
+                                linearTerms.push(cLinear + " * x");
+                            } else {
+                                linearTerms.push(cLinear + " * x^" + @(i));
+                            }
+                        }
+                        </text>
+                    }
+                    var exprLinear = linearTerms.join(" + ");
+                    if (exprLinear === "") exprLinear = "0";
+                    ggbApplet.evalCommand("f(x) = " + exprLinear);
+                    ggbApplet.evalCommand("SetColor(f, 139, 92, 246)"); // Púrpura (#8b5cf6)
+                    ggbApplet.evalCommand("SetLineThickness(f, 4)");
+                    </text>
+                }
+
+                // Graficar Regresión Polinomial
+                @if (Model.Result.PolySuccess && Model.Result.PolyCoeficientes.Any())
+                {
+                    <text>
+                    var polyTerms = [];
+                    @for (int i = 0; i < Model.Result.PolyCoeficientes.Count; i++)
+                    {
+                        var coefVal = Model.Result.PolyCoeficientes[i].ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        <text>
+                        var cPoly = @(coefVal);
+                        if (cPoly !== 0 || @(i) === 0) {
+                            if (@(i) === 0) {
+                                polyTerms.push(cPoly);
+                            } else if (@(i) === 1) {
+                                polyTerms.push(cPoly + " * x");
+                            } else {
+                                polyTerms.push(cPoly + " * x^" + @(i));
+                            }
+                        }
+                        </text>
+                    }
+                    var exprPoly = polyTerms.join(" + ");
+                    if (exprPoly === "") exprPoly = "0";
+                    ggbApplet.evalCommand("g(x) = " + exprPoly);
+                    ggbApplet.evalCommand("SetColor(g, 46, 213, 115)"); // Verde neon (#2ed573)
+                    ggbApplet.evalCommand("SetLineThickness(g, 4)");
+                    </text>
+                }
+
+                // Zoom inteligente
+                if (xValues.length > 0) {
+                    var minX = Math.min.apply(null, xValues);
+                    var maxX = Math.max.apply(null, xValues);
+                    var minY = Math.min.apply(null, yValues);
+                    var maxY = Math.max.apply(null, yValues);
+
+                    var xRange = maxX - minX;
+                    var yRange = maxY - minY;
+                    if (xRange === 0) xRange = 2;
+                    if (yRange === 0) yRange = 2;
+
+                    var paddingX = xRange * 0.25;
+                    var paddingY = yRange * 0.25;
+
+                    ggbApplet.evalCommand("ZoomIn(" + (minX - paddingX) + ", " + (minY - paddingY) + ", " + (maxX + paddingX) + ", " + (maxY + paddingY) + ")");
+                } else {
+                    ggbApplet.evalCommand("ZoomIn(-5, -5, 5, 5)");
+                }
+            }
+        }, true);
+
+        window.addEventListener("load", function () {
+            ggbApp.inject('ggb-element');
+        });
+
+        function toggleGraficoTamanio() {
+            var container = document.getElementById('ggb-container-wrapper');
+            var btn = document.getElementById('btnToggleTamanio');
+            var currentHeight = container.style.height || '400px';
+
+            if (currentHeight === '600px') {
+                container.style.height = '400px';
+                btn.textContent = "🔍 Agrandar Gráfico";
+            } else {
+                container.style.height = '600px';
+                btn.textContent = "🔍 Achicar Gráfico";
+            }
+
+            // Forzar redibujado de GeoGebra tras la animación
+            setTimeout(function() {
+                if (window.ggbApplet) {
+                    var width = container.clientWidth;
+                    var height = container.clientHeight;
+                    ggbApplet.setSize(width, height);
+                }
+            }, 350);
+        }
+
+        window.addEventListener('resize', function() {
+            if (window.ggbApplet) {
+                var container = document.getElementById('ggb-container-wrapper');
+                if (container) {
+                    ggbApplet.setSize(container.clientWidth, container.clientHeight);
+                }
+            }
+        });
+        </text>
+    }
+</script>

@@ -1,5 +1,7 @@
 using Analisis_Numerico_2026.Services.Unit1;
 using Analisis_Numerico_2026.Services.Unit2;
+using Analisis_Numerico_2026.Services.Unit3;
+using Analisis_Numerico_2026.Services.Unit4;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 
@@ -21,6 +23,8 @@ namespace Analisis_Numerico_2026
             builder.Services.AddTransient<RootFindingService>();
             builder.Services.AddTransient<GaussJordanService>();
             builder.Services.AddTransient<GaussSeidelService>();
+            builder.Services.AddTransient<RegressionService>();
+            builder.Services.AddTransient<IntegrationService>();
 
             var app = builder.Build();
 
